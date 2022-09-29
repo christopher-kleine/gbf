@@ -8,28 +8,28 @@ import (
 	"gbf/memory"
 	"io"
 	"os"
-	"strings"
 )
 
 var (
 	exFile       string
-	emFile       string
+	emFile       bool
 	listEmbedded bool
 	bitwidth     int
 	clamp        bool
 	useEval      bool
+	useString    string
 )
 
 //go:embed testing/*.b
 var files embed.FS
 
 func main() {
-	flag.StringVar(&exFile, "f", "", "Filename to run")
-	flag.StringVar(&emFile, "e", "", "Name of embedded file")
-	flag.BoolVar(&listEmbedded, "l", false, "List embedded bf files")
-	flag.IntVar(&bitwidth, "b", 8, "Bits for the interpreter (8, 16, 32")
-	flag.BoolVar(&clamp, "c", false, "Clamp values instead of wrapping them")
-	flag.BoolVar(&useEval, "eval", false, "Use eval-method instead of bytecode")
+	flag.BoolVar(&emFile, "sample", false, "Use an included sample file")
+	flag.BoolVar(&listEmbedded, "list", false, "List all included demo files")
+	flag.IntVar(&bitwidth, "bit", 8, "Bits for the engine (8, 16, 32")
+	flag.BoolVar(&clamp, "clamp", false, "Clamp values instead of wrapping them")
+	flag.BoolVar(&useEval, "eval", false, "Use eval-engine instead of bytecode-engine")
+	flag.StringVar(&useString, "code", "", "Direct input of bf code")
 	flag.Parse()
 
 	var (
@@ -37,40 +37,63 @@ func main() {
 		data []byte
 	)
 
-	if exFile == "-" {
+	exFile = flag.Arg(0)
+	if emFile {
+		if exFile == "-" {
+			fmt.Fprintln(os.Stderr, `You can't use pipe on sample files.
+Remove the -sample option if you wish to use pipes.
+Or specify one of the sample files.
+
+To find out, what files are included, use the -list option.
+
+Options:`)
+
+			flag.PrintDefaults()
+			os.Exit(1)
+		} else if exFile != "" {
+			data, err = files.ReadFile("testing/" + exFile)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		} else {
+			fmt.Fprintln(os.Stderr, `You need to specify the name of the sample.
+Use the -list option to list all sample files.
+
+Options:`)
+			flag.PrintDefaults()
+			os.Exit(1)
+		}
+	} else if exFile == "-" && useString == "" {
 		data, err = io.ReadAll(os.Stdin)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 	} else if exFile != "" {
 		data, err = os.ReadFile(exFile)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
-	} else if emFile != "" {
-		data, err = files.ReadFile("testing/" + emFile + ".b")
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	} else if useString != "" {
+		data = []byte(useString)
 	} else if listEmbedded {
 		fileList, err := files.ReadDir("testing")
 		if err != nil {
-			fmt.Println(err)
+			fmt.Fprintln(os.Stderr, err)
 			os.Exit(1)
 		}
 
 		for _, f := range fileList {
-			fmt.Println(strings.TrimSuffix(f.Name(), ".b"))
+			fmt.Println(f.Name())
 		}
 
 		os.Exit(0)
 	}
 
 	if len(data) == 0 {
-		fmt.Println("No bf file provided. Use -f to specify a filename, -e to use an embedded file or -l to list the embedded files.")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
@@ -83,7 +106,10 @@ func main() {
 	case 32:
 		mem = memory.NewMem32(64*1024, clamp)
 	default:
-		fmt.Println("Invalid bit value")
+		fmt.Fprintln(os.Stderr, `Invalid bit value. Valid are: 8, 16 or 24.
+
+Options:`)
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 
