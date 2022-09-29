@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"gbf"
 	"gbf/memory"
+	"io"
 	"os"
 	"strings"
 )
@@ -14,6 +15,8 @@ var (
 	exFile       string
 	emFile       string
 	listEmbedded bool
+	bitwidth     int
+	clamp        bool
 )
 
 //go:embed testing/*.b
@@ -23,6 +26,8 @@ func main() {
 	flag.StringVar(&exFile, "f", "", "Filename to run")
 	flag.StringVar(&emFile, "e", "", "Name of embedded file")
 	flag.BoolVar(&listEmbedded, "l", false, "List embedded bf files")
+	flag.IntVar(&bitwidth, "b", 8, "Bits for the interpreter (8, 16, 32")
+	flag.BoolVar(&clamp, "c", false, "Clamp values instead of wrapping them")
 	flag.Parse()
 
 	var (
@@ -30,7 +35,13 @@ func main() {
 		data []byte
 	)
 
-	if exFile != "" {
+	if exFile == "-" {
+		data, err = io.ReadAll(os.Stdin)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	} else if exFile != "" {
 		data, err = os.ReadFile(exFile)
 		if err != nil {
 			fmt.Println(err)
@@ -61,6 +72,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	mem := memory.NewMem8(64 * 1024)
+	var mem memory.Memory
+	switch bitwidth {
+	case 8:
+		mem = memory.NewMem8(64*1024, clamp)
+	case 16:
+		mem = memory.NewMem16(64*1024, clamp)
+	case 32:
+		mem = memory.NewMem32(64*1024, clamp)
+	default:
+		fmt.Println("Invalid bit value")
+		os.Exit(1)
+	}
+
 	gbf.Eval(mem, data, os.Stdin, os.Stdout)
 }
