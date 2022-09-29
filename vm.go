@@ -177,6 +177,13 @@ func VM(mem memory.Memory, src []byte, in io.Reader, out io.Writer) {
 			for index := 0; index < allIns[pos].Value; index++ {
 				out.Write([]byte{byte(mem.Get())})
 			}
+
+		case ',':
+			for index := 0; index < allIns[pos].Value; index++ {
+				b := make([]byte, 1)
+				in.Read(b)
+				mem.Set(int(b[0]))
+			}
 		}
 		pos++
 	}
