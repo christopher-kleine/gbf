@@ -24,5 +24,4 @@ jobs:
         goarch: ${{ matrix.goarch }}
         project_path: "./cmd/gbf"
         executable_compression: upx
-        ldflags: -w -s
-        build_flags: -race
+        build_command: CGO_ENABLED=0 go build -race -ldflags="-s -w" ./cmd/gbf
