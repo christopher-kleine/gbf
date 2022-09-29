@@ -17,6 +17,7 @@ var (
 	listEmbedded bool
 	bitwidth     int
 	clamp        bool
+	useEval      bool
 )
 
 //go:embed testing/*.b
@@ -28,6 +29,7 @@ func main() {
 	flag.BoolVar(&listEmbedded, "l", false, "List embedded bf files")
 	flag.IntVar(&bitwidth, "b", 8, "Bits for the interpreter (8, 16, 32")
 	flag.BoolVar(&clamp, "c", false, "Clamp values instead of wrapping them")
+	flag.BoolVar(&useEval, "eval", false, "Use eval-method instead of bytecode")
 	flag.Parse()
 
 	var (
@@ -85,5 +87,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	gbf.Eval(mem, data, os.Stdin, os.Stdout)
+	if useEval {
+		gbf.Eval(mem, data, os.Stdin, os.Stdout)
+	} else {
+		gbf.VM(mem, data, os.Stdin, os.Stdout)
+	}
 }
