@@ -26,5 +26,5 @@ func main() {
 	}
 
 	mem := memory.NewMem8(64 * 1024)
-	gbf.Exec(mem, string(data), os.Stdin, os.Stdout)
+	gbf.Eval(mem, data, os.Stdin, os.Stdout)
 }
