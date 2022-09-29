@@ -1,4 +1,4 @@
-package gbf
+package memory
 
 type Memory interface {
 	Add(int)
