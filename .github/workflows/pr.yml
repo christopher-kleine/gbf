@@ -1,4 +1,4 @@
-name: CICD
+name: PullRequest
 on: [ pull_request ]
 jobs:
   test:
