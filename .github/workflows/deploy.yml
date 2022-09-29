@@ -22,5 +22,6 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         goos: ${{ matrix.goos }}
         goarch: ${{ matrix.goarch }}
+        project_path: "./cmd/gbf"
         executable_compression: upx
-        build_command: make
+        ldflags: -w -s
