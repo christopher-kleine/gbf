@@ -2,7 +2,7 @@ name: Deploy
 on:
   push:
     branches:
-      master
+      release
 jobs:
   test:
     runs-on: ubuntu-latest
