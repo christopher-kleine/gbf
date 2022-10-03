@@ -8,6 +8,7 @@ import (
 	"gbf/memory"
 	"io"
 	"os"
+	"time"
 )
 
 var (
@@ -18,6 +19,7 @@ var (
 	clamp        bool
 	useEval      bool
 	useString    string
+	useTime      bool
 )
 
 //go:embed testing/*.b
@@ -29,6 +31,7 @@ func main() {
 	flag.IntVar(&bitwidth, "bit", 8, "Bits for the engine (8, 16, 32")
 	flag.BoolVar(&clamp, "clamp", false, "Clamp values instead of wrapping them")
 	flag.BoolVar(&useEval, "eval", false, "Use eval-engine instead of bytecode-engine")
+	flag.BoolVar(&useTime, "time", false, "Measure execution time")
 	flag.StringVar(&useString, "code", "", "Direct input of bf code")
 	flag.Parse()
 
@@ -113,9 +116,13 @@ Options:`)
 		os.Exit(1)
 	}
 
+	startTime := time.Now()
 	if useEval {
 		gbf.Eval(mem, data, os.Stdin, os.Stdout)
 	} else {
 		gbf.VM(mem, data, os.Stdin, os.Stdout)
+	}
+	if useTime {
+		fmt.Println("\n", time.Since(startTime))
 	}
 }
