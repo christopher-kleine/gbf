@@ -10,9 +10,11 @@ jobs:
       version: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
       hasVersion: ${{ steps.get_next_version.outputs.HAS_NEXT_VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - name: clone repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - name: download and use get-next-version
-        id: get_next_version
         run: |
           curl -L -o get-next-version https://github.com/thenativeweb/get-next-version/releases/download/2.1.2/get-next-version-linux-amd64
           chmod a+x get-next-version
