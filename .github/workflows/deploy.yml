@@ -12,7 +12,6 @@ jobs:
     steps:
       - name: download and use get-next-version
         id: get_next_version
-        run:
         run: |
           curl -L -o get-next-version https://github.com/thenativeweb/get-next-version/releases/download/2.1.2/get-next-version-linux-amd64
           chmod a+x get-next-version
