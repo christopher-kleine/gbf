@@ -20,6 +20,8 @@ var (
 	useEval      bool
 	useString    string
 	useTime      bool
+	showVersion  bool
+	BuildVersion string
 )
 
 //go:embed testing/*.b
@@ -33,12 +35,18 @@ func main() {
 	flag.BoolVar(&useEval, "eval", false, "Use eval-engine instead of bytecode-engine")
 	flag.BoolVar(&useTime, "time", false, "Measure execution time")
 	flag.StringVar(&useString, "code", "", "Direct input of bf code")
+	flag.BoolVar(&showVersion, "version", false, "Show current version")
 	flag.Parse()
 
 	var (
 		err  error
 		data []byte
 	)
+
+	if showVersion {
+		fmt.Println(BuildVersion)
+		os.Exit(0)
+	}
 
 	exFile = flag.Arg(0)
 	if emFile {

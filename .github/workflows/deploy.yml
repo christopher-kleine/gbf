@@ -1,11 +1,30 @@
 name: Release
 on:
-  release:
-    types: [created]
+  push:
+    branches: [ release ]
 
 jobs:
+  get_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
+      hasVersion: ${{ steps.get_next_version.outputs.HAS_NEXT_VERSION }}
+    steps:
+      - name: download and use get-next-version
+        id: get_next_version
+        run:
+        run: |
+          curl -L -o get-next-version https://github.com/thenativeweb/get-next-version/releases/download/2.1.2/get-next-version-linux-amd64
+          chmod a+x get-next-version
+          NEXT_VERSION_JSON=$(./get-next-version --format json)
+          echo $NEXT_VERSION_JSON
+          echo "NEXT_VERSION=v$(echo $NEXT_VERSION_JSON | jq -r ".version" -)" >> $GITHUB_OUTPUT
+          echo "HAS_NEXT_VERSION=$(echo $NEXT_VERSION_JSON | jq -r ".hasNextVersion" -)" >> $GITHUB_OUTPUT
+
   releases-matrix:
     name: Release Go Binary
+    needs: [ get_version ]
+    if: ${{ needs.get_version.outputs.hasVersion == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,4 +43,5 @@ jobs:
         goarch: ${{ matrix.goarch }}
         project_path: "./cmd/gbf"
         executable_compression: upx
-        ldflags: -w -s
+        ldflags: -w -s -X main=${{ needs.get_version.outputs.version }}
+        release_tag: ${{ needs.get_version.outputs.version }}
