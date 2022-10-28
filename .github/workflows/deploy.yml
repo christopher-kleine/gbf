@@ -10,6 +10,7 @@ jobs:
       version: ${{ steps.get_next_version.outputs.NEXT_VERSION }}
       hasVersion: ${{ steps.get_next_version.outputs.HAS_NEXT_VERSION }}
     steps:
+      - uses: actions/checkout@v3
       - name: download and use get-next-version
         id: get_next_version
         run: |
